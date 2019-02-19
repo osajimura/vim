@@ -1825,9 +1825,9 @@ cs_file_results(FILE *f, int *nummatches_a)
 	       continue;
 
 	   if (strcmp(cntx, "<global>")==0)
-	       strcpy(context, "<<global>>");
+	       strcpy(context, "<global>");
 	   else
-	       sprintf(context, "<<%s>>", cntx);
+	       sprintf(context, "%s", cntx);
 
 	   if (search == NULL)
 	       fprintf(f, "%s\t%s\t%s\n", fullname, slno, context);
@@ -1964,11 +1964,15 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
     char	*t_buf;
     int		bufsize = 0; /* Track available bufsize */
     int		newsize = 0;
+    int		filelen = 4;
+    int		funclen = 8;
+    int		len = 0;
+    int		flen = 0;
     char	*ptag;
     char	*fname, *lno, *extra, *tbuf;
     int		i, idx, num;
-    char	*globalcntx = "GLOBAL";
-    char	*cntxformat = " <<%s>>";
+    char	*globalcntx = "<global>";
+    char	*cntxformat = "%-*s";
     char	*context;
     char	*cstag_msg = _("Cscope tag: %s");
     char	*csfmt_str = "%4d %6s  ";
@@ -1997,9 +2001,47 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
 
     vim_free(tbuf);
 
+    for (i = 0; i < num_matches; i++) {
+
+	idx = i;
+
+	if ((tbuf = (char *)alloc((unsigned)strlen(matches[idx]) + 1)) == NULL)
+            continue;
+	(void)strcpy(tbuf, matches[idx]);
+
+	/* split matching result with tab (\t) and retreive file name */
+	if (strtok(tbuf, (const char *)"\t") == NULL)
+	    continue;
+	/* strtok returns first item if first arg is NULL */
+	if ((fname = strtok(NULL, (const char *)"\t")) == NULL)
+            continue;
+
+	len = (int)strlen(cs_pathcomponents(fname));
+
+	if (cntxts[idx] != NULL) {
+	    context = cntxts[idx];
+	    flen = (int)strlen(context);
+	}
+
+	if (len > filelen)
+	    filelen = len;
+	if (flen > funclen)
+	    funclen = flen;
+
+	vim_free(tbuf);
+    }
+
+
     msg_puts_attr(_("\n   #   line"), HL_ATTR(HLF_T));    /* strlen is 7 */
-    msg_advance(msg_col + 2);
+    msg_advance(msg_col + 3);
+
+    /*
     msg_puts_attr(_("filename / context / line\n"), HL_ATTR(HLF_T));
+    */
+
+    msg_puts_attr("File", HL_ATTR(HLF_VNC));
+    msg_advance(msg_col + filelen - 3);
+    msg_puts_attr("Function\n", HL_ATTR(HLF_VNC));
 
     num = 1;
     for (i = 0; i < num_matches; i++)
@@ -2026,7 +2068,7 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
 	lno[strlen(lno)-2] = '\0';  /* ignore ;" at the end */
 
 	/* hopefully 'num' (num of matches) will be less than 10^16 */
-	newsize = (int)(strlen(csfmt_str) + 16 + strlen(lno));
+	newsize = (int)(strlen(csfmt_str) + strlen(lno) + filelen + funclen);
 	if (bufsize < newsize)
 	{
 	    t_buf = buf;
@@ -2045,8 +2087,17 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
 	    (void)sprintf(buf, csfmt_str, num, lno);
 	    msg_puts_attr(buf, HL_ATTR(HLF_CM));
 	}
+
+	msg_putchar(' ');
+
+	/*
 	msg_outtrans_long_attr((char_u *)cs_pathcomponents(fname),
 							      HL_ATTR(HLF_CM));
+	*/
+
+	(void) sprintf(buf, "%-*s", filelen, cs_pathcomponents(fname));
+        msg_outtrans_long_attr((char_u *)buf, HL_ATTR(HLF_N));
+        msg_putchar(' ');
 
 	/* compute the required space for the context */
 	if (cntxts[idx] != NULL)
@@ -2069,14 +2120,14 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
 	}
 	if (buf != NULL)
 	{
-	    (void)sprintf(buf, cntxformat, context);
+	    (void)sprintf(buf, cntxformat, funclen, context);
 
 	    /* print the context only if it fits on the same line */
 	    if (msg_col + (int)strlen(buf) >= (int)Columns)
 		msg_putchar('\n');
 	    msg_advance(12);
 	    msg_outtrans_long_attr((char_u *)buf, 0);
-	    msg_putchar('\n');
+	    msg_putchar(' ');
 	}
 	if (extra != NULL)
 	{
