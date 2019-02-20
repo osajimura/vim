@@ -2039,9 +2039,9 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
     msg_puts_attr(_("filename / context / line\n"), HL_ATTR(HLF_T));
     */
 
-    msg_puts_attr("File", HL_ATTR(HLF_VNC));
+    msg_puts_attr("File", HL_ATTR(HLF_T));
     msg_advance(msg_col + filelen - 3);
-    msg_puts_attr("Function\n", HL_ATTR(HLF_VNC));
+    msg_puts_attr("Function\n", HL_ATTR(HLF_T));
 
     num = 1;
     for (i = 0; i < num_matches; i++)
@@ -2096,7 +2096,7 @@ cs_print_tags_priv(char **matches, char **cntxts, int num_matches)
 	*/
 
 	(void) sprintf(buf, "%-*s", filelen, cs_pathcomponents(fname));
-        msg_outtrans_long_attr((char_u *)buf, HL_ATTR(HLF_N));
+        msg_outtrans_long_attr((char_u *)buf, HL_ATTR(HLF_W));
         msg_putchar(' ');
 
 	/* compute the required space for the context */
