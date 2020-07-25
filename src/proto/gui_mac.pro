@@ -36,6 +36,8 @@ void gui_mch_set_text_area_pos(int x, int y, int w, int h);
 void gui_mch_enable_scrollbar(scrollbar_T *sb, int flag);
 void gui_mch_set_scrollbar_thumb(scrollbar_T *sb, long val, long size, long max);
 void gui_mch_set_scrollbar_pos(scrollbar_T *sb, int x, int y, int w, int h);
+int gui_mch_get_scrollbar_xpadding(void);
+int gui_mch_get_scrollbar_ypadding(void);
 void gui_mch_create_scrollbar(scrollbar_T *sb, int orient);
 void gui_mch_destroy_scrollbar(scrollbar_T *sb);
 int gui_mch_adjust_charheight(void);
@@ -111,10 +113,10 @@ void mch_post_buffer_write (buf_T *buf);
 
 void mch_errmsg(char *str);
 void mch_display_error(void);
-void clip_mch_lose_selection(VimClipboard *cbd);
-void clip_mch_request_selection(VimClipboard *cbd);
-void clip_mch_set_selection(VimClipboard *cbd);
-int clip_mch_own_selection(VimClipboard *cbd);
+void clip_mch_lose_selection(Clipboard_T *cbd);
+void clip_mch_request_selection(Clipboard_T *cbd);
+void clip_mch_set_selection(Clipboard_T *cbd);
+int clip_mch_own_selection(Clipboard_T *cbd);
 
 pascal	OSErr	FindProcessBySignature( const OSType targetType,
 					const OSType targetCreator, ProcessSerialNumberPtr psnPtr );
